@@ -5,8 +5,7 @@ $.support.cors = true;
 $.mobile.allowCrossDomainPages = true;
 function cargarNoticias () {
 	$.mobile.loading( "show");
-	var content = "";
-	
+	var content = "";	
 	$.ajax({
 		url: API_SOURCE+"newsList/",
 		type:'GET',

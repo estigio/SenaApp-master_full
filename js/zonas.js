@@ -78,7 +78,7 @@ function getPlaces(idDep) {
                        for(lugar in item.lug){
 	                       content += '<li id="itemlista">'+
 	                       		'<div class="ui-grid-solo" id="contentItem">' +
-					                         '<a id="place" href="#" value="'+item.lug[lugar].id+'"  data-rel="popup" data-position-to="window"   data-inline="true" data-transition="pop"  >'+       
+					                         '<a id="place" href="#" value="'+item.lug[lugar].id+'" >'+       
 					                             '<div id="listItem" class="ui-grid-b">'+
 					                                '<div class="ui-block-a"></div> '+ 
 					                                 '<div id="textButtonL" class="ui-block-c">'+
@@ -95,7 +95,7 @@ function getPlaces(idDep) {
 		});
 
 		 content+='</ul>';
-		$("#contenidoOpciones").append(content);		
+		$("#contenidoOpciones").html(content);		
 		$('#contenidoOpciones').trigger('create');
 		$('#contenidoOpciones').trigger('refresh');
 
@@ -120,19 +120,74 @@ function getPlaces(idDep) {
 							$.each( data, function ( i, item ){
 								$("#tituloLugar").html(item.nombre);
 								$("#descripcionLugar").html(item.descripcion);
-							});	
-							$('#infoLugar').trigger('refresh');
-							 
-							$("#infoLugar").popup("open");
 
+								
+								GMaps.geolocate({
+								  success: function(position) {
+								    var map = new GMaps({
+								  div: '#mapa',
+								  width: 300,
+								  height: 500,
+								  lat: item.lat,
+								  lng: item.long
+								});
+
+								map.addMarker({
+								    lat: item.lat,
+									lng: item.long,
+							        title: item.nombre,
+							        infoWindow: {
+							          content: '<p>'+item.descripcion+'</p>'
+							        }
+							      });
+
+								map.drawRoute({
+								  origin: [position.coords.latitude, position.coords.longitude],
+								  destination: [item.lat, item.long],
+								  travelMode: 'driving',
+								  strokeColor: 'green',
+								  strokeOpacity: 0.6,
+								  strokeWeight: 6
+								});
+
+								  },
+								  error: function(error) {
+								    console.log('La geolocalizaión ha fallado log: '+error.message);
+								    $("#mensajesMapa").html('Para Usar la Geolocalizacion debes activar tu GPs y'+
+								     'dar permisos a la aplicación para que  lo utilice ');
+									var map = new GMaps({
+									  div: '#mapa',
+									  width: 300,
+									  height: 500,
+									  lat: item.lat,
+									  lng: item.long
+									});
+
+									map.addMarker({
+								    lat: item.lat,
+									lng: item.long,
+							        title: item.nombre,
+							        infoWindow: {
+							          content: '<p>'+item.descripcion+'</p>'
+							        }
+							      });
+								  },
+								  not_supported: function() {
+								    alert("Tu Dispositivo no soporta Geolocalización");
+								  },
+								  always: function() {
+								    console.log("Done! Ubicado");
+								     $("#mensajesMapa").html('En este mapa encontraras, ubicación en el mapa del centro seleccionado,');
+
+								  }
+								});
+								
+							});	
+							$('#place').trigger('refresh');
+							$.mobile.navigate( "#place",{ transition: "slide"});
 						});
 					        			
 		 });
-
-		 $("#closepop").click(function (){
-		 	$("#infoLugar").popup("close");
-		 });
-
 
 	 });
 		
@@ -156,11 +211,19 @@ function lugar(id) {
         cache:false
 	}).done( function (data){		
 		$.each( data, function ( i, item ){
+			alert(item.nombre);
 			$("#tituloLugar").html(item.nombre);
 			$("#descripcionLugar").html(item.descripcion);
+			$("#lat").html(item.lat);
+			$("#long").html(item.long);
+
 		});	
 		$('#infoLugar').trigger('refresh');
+		
+
+		
 		$.mobile.navigate("#infoLugar");
+
 	});
 }
 
